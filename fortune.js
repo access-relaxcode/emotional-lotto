@@ -23,7 +23,7 @@ function initializeFortunes({ randomInteger, reduceMotion, onEnter }) {
     { title: '나를 믿는 시간', message: '오늘은 내 마음이 편안해지는 쪽을 골라보세요. 작은 선택 하나에도 당신의 취향이 담겨 있어요.' },
   ];
   const rituals = {
-    tarot: { title: '타로 카드', hint: '세 장 중 마음이 끌리는 한 장을 골라주세요.', wait: 1000,
+    tarot: { title: '타로 카드', hint: '세 장 중 마음이 끌리는 한 장을 골라주세요.', wait: 1300,
       markup: '<div class="tarot-deck">' + [1, 2, 3].map(n => `<button type="button" class="tarot-card" aria-label="${n}번째 타로 카드 뽑기"><span class="tarot-inner"><span class="tarot-back">✦<small>YOUR MOMENT</small></span><span class="tarot-front">☀<small>작은 빛</small></span></span></button>`).join('') + '</div>' },
     cookie: { title: '포춘 쿠키', hint: '쿠키를 눌러 안에 담긴 메시지를 열어보세요.', wait: 1100,
       markup: '<button type="button" class="cookie-draw ritual-trigger" aria-label="포춘 쿠키 열기"><span class="cookie-paper">작은 행운이 도착했어요</span><span class="cookie-half cookie-left"></span><span class="cookie-half cookie-right"></span><span class="cookie-crumb crumb-one"></span><span class="cookie-crumb crumb-two"></span></button>' },
@@ -35,7 +35,7 @@ function initializeFortunes({ randomInteger, reduceMotion, onEnter }) {
 
   function showChoices() {
     if (busy) return;
-    onEnter();
+    onEnter('fortune');
     lottery.hidden = true;
     page.hidden = false;
     choices.hidden = false;
@@ -68,6 +68,9 @@ function initializeFortunes({ randomInteger, reduceMotion, onEnter }) {
     const fortuneIndex = randomInteger(fortunes.length);
     const fortune = fortunes[fortuneIndex];
     if (type === 'tarot') {
+      const deckBounds = selected.parentElement.getBoundingClientRect();
+      const cardBounds = selected.getBoundingClientRect();
+      selected.style.setProperty('--pick-shift', `${deckBounds.left + deckBounds.width / 2 - cardBounds.left - cardBounds.width / 2}px`);
       const front = selected.querySelector('.tarot-front');
       front.firstChild.textContent = ['☀', '☽', '✧'][fortuneIndex % 3];
       front.querySelector('small').textContent = fortune.title;
@@ -100,7 +103,7 @@ function initializeFortunes({ randomInteger, reduceMotion, onEnter }) {
   $('backToFortune').addEventListener('click', showChoices);
   $('enterLottery').addEventListener('click', () => {
     if (busy || result.hidden) return;
-    onEnter();
+    onEnter('lottery');
     page.hidden = true;
     lottery.hidden = false;
     $('drawButton').focus({ preventScroll: true });

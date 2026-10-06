@@ -47,3 +47,38 @@ test('soft taps stay finite, below clipping, and end at silence', () => {
     assert.ok(samples.some(n => Math.abs(n) > 0.05));
   }
 });
+
+test('clap filtering attenuates the low thump more than the light upper texture', () => {
+  const context = vm.createContext({});
+  vm.runInContext(fs.readFileSync(path.join(root, 'flap-sound.js'), 'utf8'), context);
+  const rate = 48000;
+  let index = 0;
+  const random = () => {
+    const t = index++ / rate;
+    return .5 + (Math.sin(2 * Math.PI * 200 * t) + Math.sin(2 * Math.PI * 2500 * t)) / 4;
+  };
+  context.random = random;
+  const samples = vm.runInContext('createSoftTapSamples(48000, random)', context);
+  function magnitude(frequency) {
+    let real = 0, imaginary = 0;
+    for (let i = 0; i < samples.length; i++) {
+      const phase = 2 * Math.PI * frequency * i / rate;
+      real += samples[i] * Math.cos(phase);
+      imaginary += samples[i] * Math.sin(phase);
+    }
+    return Math.hypot(real, imaginary);
+  }
+  assert.ok(magnitude(200) < magnitude(2500) * .7);
+});
+
+test('clap playback raises the pitch by two semitones at the variation midpoint', () => {
+  const controlledMath = Object.create(Math);
+  controlledMath.random = () => .5;
+  const source = { playbackRate: { value: 0 }, connect() {}, start() {}, disconnect() {} };
+  const context = vm.createContext({ Math: controlledMath, source });
+  vm.runInContext(fs.readFileSync(path.join(root, 'flap-sound.js'), 'utf8'), context);
+  vm.runInContext(`const sound = new SoftFlapSound(); sound.volume = .35;
+    sound.context = { state: 'running', currentTime: 0, createBufferSource: () => source };
+    sound.master = {}; sound.buffers = [{}]; sound.play();`, context);
+  assert.ok(Math.abs(source.playbackRate.value - 2 ** (2 / 12)) < 1e-12);
+});

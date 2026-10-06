@@ -53,6 +53,14 @@ if (typeof document !== "undefined") {
       accent: "#f59e0b",
       flapStyle: "light",
     },
+    fortuneDark: {
+      grad1: "#081d28", grad2: "#153b47", grad3: "#314653",
+      accent: "#a8e5da", flapStyle: "dark",
+    },
+    fortuneLight: {
+      grad1: "#eef6f4", grad2: "#d5e9e4", grad3: "#fae6d8",
+      accent: "#245f60", flapStyle: "light",
+    },
   };
 
   const board = document.getElementById("board");
@@ -103,6 +111,8 @@ if (typeof document !== "undefined") {
         volume: Number.isFinite(saved?.volume) ? Math.min(100, Math.max(0, saved.volume)) : DEFAULTS.volume,
         dark: validatedTheme("dark", saved?.dark),
         light: validatedTheme("light", saved?.light),
+        fortuneDark: validatedTheme("fortuneDark", saved?.fortuneDark),
+        fortuneLight: validatedTheme("fortuneLight", saved?.fortuneLight),
       };
     } catch (error) {
       return structuredClone(DEFAULTS);
@@ -117,9 +127,12 @@ if (typeof document !== "undefined") {
     }
   }
 
-  function currentTheme() {
-    return settings[settings.mode];
+  function themeKey() {
+    return document.body.dataset.view === "fortune"
+      ? settings.mode === "light" ? "fortuneLight" : "fortuneDark" : settings.mode;
   }
+
+  function currentTheme() { return settings[themeKey()]; }
 
   function accentText(hex) {
     const value = hex.replace("#", "");
@@ -136,6 +149,7 @@ if (typeof document !== "undefined") {
     const spinning = theme.flapStyle === "light";
 
     root.dataset.theme = settings.mode;
+    document.getElementById("themeSummary").textContent = document.body.dataset.view === "fortune" ? "운세 화면 꾸미기" : "추첨 화면 꾸미기";
     root.style.setProperty("--grad-1", theme.grad1);
     root.style.setProperty("--grad-2", theme.grad2);
     root.style.setProperty("--grad-3", theme.grad3);
@@ -307,7 +321,7 @@ if (typeof document !== "undefined") {
   accent.addEventListener("input", () => updateCurrentTheme({ accent: accent.value }));
   flapStyle.addEventListener("change", () => updateCurrentTheme({ flapStyle: flapStyle.value }));
   resetTheme.addEventListener("click", () => {
-    settings[settings.mode] = { ...DEFAULTS[settings.mode] };
+    settings[themeKey()] = { ...DEFAULTS[themeKey()] };
     saveSettings();
     applyTheme();
   });
@@ -360,7 +374,11 @@ if (typeof document !== "undefined") {
   window.addEventListener("pagehide", () => sound.close());
 
   setIdle();
-  initializeFortunes({ randomInteger, reduceMotion, onEnter: setIdle });
+  initializeFortunes({ randomInteger, reduceMotion, onEnter: (view) => {
+    document.body.dataset.view = view;
+    setIdle();
+    applyTheme();
+  } });
 } else {
   const digits = generateLottoDigits();
   console.log(`로또 번호: ${formatLottoDigits(digits)}`);

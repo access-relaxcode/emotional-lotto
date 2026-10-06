@@ -2,7 +2,10 @@
 function createSoftTapSamples(sampleRate, random = Math.random) {
   const samples = new Float32Array(Math.ceil(sampleRate * 0.085));
   let softenedNoise = 0;
+  let previousAir = 0;
+  let highPassed = 0;
   const smoothing = 1 - Math.exp(-2 * Math.PI * 2400 / sampleRate);
+  const highPassDecay = Math.exp(-2 * Math.PI * 650 / sampleRate);
   for (let i = 0; i < samples.length; i += 1) {
     const t = i / sampleRate;
     softenedNoise += smoothing * (random() * 2 - 1 - softenedNoise);
@@ -12,7 +15,9 @@ function createSoftTapSamples(sampleRate, random = Math.random) {
     const burst = (start, strength) => t < start ? 0 : strength * Math.exp(-(t - start) * 155);
     const envelope = burst(0, 0.6) + burst(0.008, 0.25) + burst(0.016, 0.12);
     const air = softenedNoise * (envelope + 0.10 * Math.exp(-t * 65));
-    samples[i] = air * attack * tail;
+    highPassed = highPassDecay * (highPassed + air - previousAir);
+    previousAir = air;
+    samples[i] = highPassed * attack * tail;
   }
   return samples;
 }
@@ -65,7 +70,7 @@ class SoftFlapSound {
     this.lastTap = when;
     const source = this.context.createBufferSource();
     source.buffer = this.buffers[Math.floor(Math.random() * this.buffers.length)];
-    source.playbackRate.value = 0.96 + Math.random() * 0.08;
+    source.playbackRate.value = 2 ** (2 / 12) * (0.98 + Math.random() * 0.04);
     source.connect(this.master);
     source.onended = () => source.disconnect();
     source.start(when);

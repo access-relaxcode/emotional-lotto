@@ -470,7 +470,7 @@
     </style>
     <link rel="stylesheet" href="fortune.css">
   </head>
-  <body>
+  <body data-view="fortune">
     <div class="page">
     <aside class="toolbar" id="themeToolbar">
       <div class="mode-row">
@@ -478,7 +478,7 @@
         <button type="button" id="darkMode" aria-pressed="true">다크</button>
       </div>
       <details>
-        <summary>이 모드 꾸미기</summary>
+        <summary id="themeSummary">운세 화면 꾸미기</summary>
         <div class="theme-fields">
           <label>배경 1 <input id="grad1" type="color" /></label>
           <label>배경 2 <input id="grad2" type="color" /></label>
@@ -495,7 +495,7 @@
         </div>
       </details>
     </aside>
-    <main class="card" id="fortunePage" aria-labelledby="fortuneHeading">
+    <main class="fortune-shell" id="fortunePage" aria-labelledby="fortuneHeading">
       <p class="eyebrow">A LITTLE LUCK, A LITTLE JOY</p>
       <h1 id="fortuneHeading" tabindex="-1">오늘의 운세를 뽑아볼까요?</h1>
       <p class="lede">마음이 끌리는 방식으로, 오늘의 작은 힌트를 만나보세요.</p>

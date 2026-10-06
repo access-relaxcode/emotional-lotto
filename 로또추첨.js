@@ -224,6 +224,7 @@ if (typeof document !== "undefined") {
   }
 
   function lockTheme(locked) {
+    document.getElementById("backToFortune").disabled = locked;
     lotteryMode.disabled = locked;
     toolbar.classList.toggle("locked", locked);
     toolbar.querySelectorAll("button, input, select").forEach((control) => {
@@ -332,7 +333,7 @@ if (typeof document !== "undefined") {
   async function startSound() {
     if (!settings.sound || settings.volume === 0) return;
     const available = await sound.start();
-    soundHint.textContent = available ? "작고 부드러운 키보드 소리" : "이 환경에서는 소리를 재생할 수 없어요.";
+    soundHint.textContent = available ? "손뼉처럼 가볍고 부드러운 소리" : "이 환경에서는 소리를 재생할 수 없어요.";
   }
 
   lotteryMode.addEventListener("change", () => {
@@ -359,6 +360,7 @@ if (typeof document !== "undefined") {
   window.addEventListener("pagehide", () => sound.close());
 
   setIdle();
+  initializeFortunes({ randomInteger, reduceMotion, onEnter: setIdle });
 } else {
   const digits = generateLottoDigits();
   console.log(`로또 번호: ${formatLottoDigits(digits)}`);

@@ -87,6 +87,23 @@
       body.glow::before {
         animation-play-state: running;
       }
+      body.fortune-active::before { animation-play-state: running; }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -50%;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse at 28% 35%, color-mix(in srgb, var(--grad-2) 80%, transparent), transparent 45%),
+          radial-gradient(ellipse at 72% 65%, color-mix(in srgb, var(--grad-3) 85%, transparent), transparent 45%),
+          radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 35%);
+        opacity: 0.55;
+        animation: aurora 32s linear infinite paused;
+      }
+      body.drawing::after, body.fortune-active::after { animation-play-state: running; }
+      @keyframes aurora { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      [hidden] { display: none !important; }
 
       body.glow.complete::before {
         animation-play-state: paused;
@@ -397,6 +414,12 @@
         background: var(--accent);
         cursor: pointer;
       }
+      .primary-button {
+        border: 0; border-radius: 999px; padding: 12px 24px; font: inherit;
+        font-weight: 700; color: var(--accent-text); background: var(--accent); cursor: pointer;
+      }
+      .quiet-button { background: transparent; color: var(--muted); border: 0; padding: 10px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+      button:disabled { cursor: wait; opacity: 0.6; }
 
       #drawButton:hover:not(:disabled) {
         filter: brightness(1.06);
@@ -431,6 +454,7 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
+        body::before, body::after { animation: none !important; }
         body.glow::before {
           animation: none;
         }
@@ -444,6 +468,7 @@
         }
       }
     </style>
+    <link rel="stylesheet" href="fortune.css">
   </head>
   <body>
     <div class="page">
@@ -470,7 +495,33 @@
         </div>
       </details>
     </aside>
-    <main class="card">
+    <main class="card" id="fortunePage" aria-labelledby="fortuneHeading">
+      <p class="eyebrow">A LITTLE LUCK, A LITTLE JOY</p>
+      <h1 id="fortuneHeading" tabindex="-1">오늘의 운세를 뽑아볼까요?</h1>
+      <p class="lede">마음이 끌리는 방식으로, 오늘의 작은 힌트를 만나보세요.</p>
+      <div id="fortuneChoices" class="fortune-choices">
+        <button type="button" data-fortune="tarot"><span class="choice-art" aria-hidden="true">✦</span><strong>타로 카드</strong><small>한 장에 담긴 오늘의 메시지</small></button>
+        <button type="button" data-fortune="cookie"><span class="choice-art" aria-hidden="true">🥠</span><strong>포춘 쿠키</strong><small>바삭, 열어보는 작은 행운</small></button>
+        <button type="button" data-fortune="water"><span class="choice-art" aria-hidden="true">≈</span><strong>물에 드러나는 운세</strong><small>물결 위로 스며드는 한마디</small></button>
+        <button type="button" data-fortune="sticks"><span class="choice-art" aria-hidden="true">☷</span><strong>산통 제비 뽑기</strong><small>흔들어 꺼내는 오늘의 한 자락</small></button>
+      </div>
+      <section id="fortuneStage" hidden aria-labelledby="ritualHeading">
+        <h2 id="ritualHeading" tabindex="-1"></h2>
+        <p id="ritualHint" class="ritual-hint"></p>
+        <div id="ritualArt" class="ritual-art"></div>
+        <p id="fortuneStatus" role="status"></p>
+        <div id="fortuneResult" class="fortune-result" hidden>
+          <p class="eyebrow">TODAY'S LITTLE MESSAGE</p>
+          <h3 id="fortuneTitle"></h3>
+          <p id="fortuneMessage"></p>
+          <p class="fortune-prompt">로또 번호 추첨을 해볼까요?</p>
+          <button type="button" id="enterLottery" class="primary-button">로또 번호 추첨하러 가기 →</button>
+        </div>
+        <button type="button" id="chooseAgain" class="quiet-button">다른 방식으로 뽑기</button>
+      </section>
+      <p class="fortune-footnote">하루를 가볍게 여는 운세 놀이</p>
+    </main>
+    <main class="card" id="lotteryPage" hidden>
       <h1>감성 로또 추첨기</h1>
       <p class="lede">잠깐의 설렘, 여섯 숫자에 담아.</p>
       <div class="draw-options">
@@ -490,10 +541,12 @@
         <label for="soundVolume">음량 <input id="soundVolume" aria-label="음량" type="range" min="0" max="100" value="35"><output id="volumeValue" for="soundVolume">35%</output></label>
         <button type="button" id="soundPreview">소리 들어보기</button>
       </div>
-      <p id="soundHint" role="status">작고 부드러운 키보드 소리</p>
+      <p id="soundHint" role="status">손뼉처럼 가볍고 부드러운 소리</p>
+      <button type="button" id="backToFortune" class="quiet-button">운세 다시 뽑기</button>
     </main>
     </div>
     <script src="flap-sound.js"></script>
+    <script src="fortune.js"></script>
     <script src="로또추첨.js"></script>
   </body>
 </html>

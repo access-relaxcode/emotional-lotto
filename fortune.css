@@ -1,0 +1,80 @@
+.eyebrow { margin: 0 0 14px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.18em; color: var(--muted); }
+.fortune-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fortune-choices button { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 12px; border: 1px solid color-mix(in srgb, var(--text) 15%, transparent); border-radius: 20px; background: color-mix(in srgb, var(--panel) 65%, transparent); color: var(--text); font: inherit; cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease; }
+.fortune-choices button:hover { transform: translateY(-4px); border-color: var(--accent); }
+.choice-art { font-size: 2.6rem; color: var(--accent); line-height: 1.2; }
+.fortune-choices strong { font-size: 0.95rem; }
+.fortune-choices small { color: var(--muted); font-size: 0.75rem; line-height: 1.5; word-break: keep-all; }
+.fortune-footnote { margin: 22px 0 0; color: var(--muted); font-size: 0.75rem; }
+#ritualHeading { margin: 12px 0; font-size: 1.2rem; }
+.ritual-hint { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+.ritual-art { min-height: 230px; display: grid; place-items: center; padding: 15px 0; }
+#fortuneStatus { min-height: 1.5em; font-size: 0.85rem; color: var(--muted); }
+.fortune-result { padding: 24px 16px; margin: 16px 0; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 20px; background: color-mix(in srgb, var(--panel) 70%, transparent); animation: message-arrive 0.5s ease both; }
+.fortune-result h3 { margin: 0 0 14px; font-size: 1.25rem; color: var(--text); }
+#fortuneMessage { margin: 0 auto 22px; max-width: 360px; line-height: 1.9; font-size: 0.95rem; color: var(--muted); word-break: keep-all; }
+.fortune-prompt { font-weight: 700; margin: 22px 0 14px; }
+.ritual-art button { -webkit-tap-highlight-color: transparent; }
+.ritual-art button:disabled { opacity: 1; cursor: default; }
+.tarot-deck { display: flex; justify-content: center; gap: 12px; }
+.tarot-card { width: 110px; height: 170px; padding: 0; border: 0; background: transparent; perspective: 700px; cursor: pointer; transition: transform 0.3s ease, opacity 0.3s ease; }
+.tarot-card:first-child { transform: rotate(-8deg) translateY(8px); }
+.tarot-card:last-child { transform: rotate(8deg) translateY(8px); }
+.tarot-card:hover:not(:disabled) { transform: translateY(-8px); }
+.tarot-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(.2,.7,.2,1); }
+.tarot-back, .tarot-front { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; border: 1px solid #e9c985; outline: 1px solid #e9c98555; outline-offset: -8px; border-radius: 12px; backface-visibility: hidden; background: linear-gradient(145deg,#171e3e,#373263); color: #efcf8d; font-size: 2.8rem; }
+.tarot-back small, .tarot-front small { font-size: 0.6rem; letter-spacing: 0.1em; }
+.tarot-front small { padding: 0 12px; line-height: 1.6; word-break: keep-all; }
+.tarot-front { transform: rotateY(180deg); background: linear-gradient(145deg,#faf0cf,#e6c987); color: #644b2b; }
+.tarot-card.selected .tarot-inner { transform: rotateY(180deg); }
+.revealing .tarot-card:not(.selected) { opacity: 0.35; }
+.ritual-trigger { position: relative; border: 0; background: transparent; padding: 0; width: 260px; height: 210px; cursor: pointer; }
+.cookie-half { position: absolute; top: 45px; width: 105px; height: 110px; background: radial-gradient(ellipse at 40% 30%,#f7d293,#d99544 75%); border: 2px solid #b77935; box-shadow: inset 0 -10px 15px #9b622344, 0 10px 20px #0002; transition: transform 0.65s ease; }
+.cookie-left { left: 26px; border-radius: 70% 25% 40% 60%; transform: rotate(14deg); }
+.cookie-right { right: 26px; border-radius: 25% 70% 60% 40%; transform: rotate(-14deg); }
+.cookie-paper { position: absolute; width: 180px; left: 40px; top: 90px; padding: 16px 8px; background: #fff9e9; color: #775332; font-size: 0.8rem; opacity: 0; transform: translateY(15px) scale(.8); transition: opacity 0.4s ease 0.45s, transform 0.6s ease 0.4s; }
+.revealing .cookie-left { transform: translate(-22px,24px) rotate(-28deg); }
+.revealing .cookie-right { transform: translate(22px,24px) rotate(28deg); }
+.revealing .cookie-paper { opacity: 1; transform: translateY(-65px) scale(1); }
+.cookie-crumb { position: absolute; top: 130px; left: 130px; width: 7px; height: 7px; border-radius: 2px; background: #d9a158; opacity: 0; }
+.revealing .crumb-one { animation: crumb-left .7s ease forwards; }
+.revealing .crumb-two { animation: crumb-right .7s ease forwards; }
+.water-draw { border-radius: 50%; height: 200px; background: radial-gradient(ellipse at center,#c1e5e988,#3c9faa55 65%,transparent 70%); }
+.water-paper { position: absolute; width: 130px; height: 145px; top: 0; left: 65px; display: grid; place-items: center; background: #fffcef; border-radius: 3px; box-shadow: 0 10px 25px #1233; transform: rotate(-5deg); transition: transform 0.8s ease; }
+.water-ink { color: #497782; font-size: 0.85rem; line-height: 2; opacity: 0; filter: blur(8px); transition: opacity 1.2s ease .6s, filter 1.2s ease .6s; }
+.water-ink { padding: 12px; word-break: keep-all; }
+.revealing .water-paper { transform: translateY(30px) rotate(3deg); }
+.revealing .water-ink { opacity: 1; filter: blur(0); }
+.water-ripple { position: absolute; inset: 40px 30px; border: 1px solid #93d5df; border-radius: 50%; opacity: 0; }
+.revealing .water-ripple { animation: water-ring 1.4s ease-out both; }
+.sticks-draw { width: 200px; }
+.ritual-art.sticks { padding-top: 45px; min-height: 260px; }
+.canister { position: absolute; bottom: 10px; left: 45px; width: 110px; height: 125px; border-radius: 10px 10px 24px 24px; display: grid; place-items: center; color: #f9deb2; font-size: 2rem; background: repeating-linear-gradient(90deg,#9c5639 0 16px,#aa6545 16px 21px); border: 3px solid #75412d; box-shadow: 0 10px 20px #0003; }
+.canister::before, .canister::after { content: ''; position: absolute; left: -3px; right: -3px; height: 8px; background: #573d32; border-radius: 3px; }
+.canister::before { top: 15px; } .canister::after { bottom: 18px; }
+.fortune-stick, .chosen-stick { position: absolute; bottom: 65px; width: 16px; height: 120px; border-radius: 4px; background: linear-gradient(90deg,#d4a768,#f2d49b); border: 1px solid #aa7746; }
+.stick-one { left: 64px; transform: rotate(-9deg); } .stick-two { left: 118px; transform: rotate(8deg); } .stick-three { left: 92px; }
+.chosen-stick { left: 91px; color: #a53930; padding-top: 12px; font-size: 0.75rem; transition: transform 0.6s ease .65s; }
+.revealing .sticks-draw { animation: canister-shake .65s ease; }
+.revealing .chosen-stick { transform: translateY(-65px) rotate(5deg); }
+@keyframes message-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes crumb-left { 20% { opacity: 1; } to { opacity: 0; transform: translate(-70px,35px) rotate(90deg); } }
+@keyframes crumb-right { 20% { opacity: 1; } to { opacity: 0; transform: translate(65px,45px) rotate(-90deg); } }
+@keyframes water-ring { 0% { opacity: 0; transform: scale(.6); } 30% { opacity: .8; } 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes canister-shake { 0%,100% { transform: rotate(0); } 20%,60% { transform: rotate(-9deg); } 40%,80% { transform: rotate(9deg); } }
+@media(max-width:640px) {
+  .fortune-choices { gap: 8px; }
+  .fortune-choices button { padding: 20px 6px; }
+  .fortune-choices strong { font-size: .85rem; }
+  .fortune-choices small { font-size: .68rem; }
+  .tarot-deck { gap: 8px; }
+  .tarot-card { width: min(80px,calc((100vw - 100px) / 3)); height: 140px; }
+  .tarot-back small { font-size: .45rem; }
+  .ritual-hint { font-size: .8rem; }
+  .ritual-trigger { max-width: 100%; }
+  .primary-button { font-size: .85rem; padding: 12px 16px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .fortune-choices button, .tarot-card, .tarot-inner, .cookie-half, .cookie-paper, .water-paper, .water-ink, .chosen-stick { transition: none !important; }
+  .fortune-result, .revealing .cookie-crumb, .revealing .water-ripple, .revealing .sticks-draw { animation: none !important; }
+}

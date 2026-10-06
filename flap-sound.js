@@ -1,17 +1,18 @@
-// A soft, damped keyboard tap, synthesized locally without external audio files.
+// A light, close-up hand clap, synthesized locally without external audio files.
 function createSoftTapSamples(sampleRate, random = Math.random) {
   const samples = new Float32Array(Math.ceil(sampleRate * 0.085));
   let softenedNoise = 0;
-  const smoothing = 1 - Math.exp(-2 * Math.PI * 1100 / sampleRate);
+  const smoothing = 1 - Math.exp(-2 * Math.PI * 2400 / sampleRate);
   for (let i = 0; i < samples.length; i += 1) {
     const t = i / sampleRate;
     softenedNoise += smoothing * (random() * 2 - 1 - softenedNoise);
     const attack = Math.min(1, t / 0.0025);
     const tail = Math.min(1, (samples.length - i - 1) / (sampleRate * 0.008));
-    const noise = softenedNoise * Math.exp(-t * 95) * 0.52;
-    const body = Math.sin(2 * Math.PI * 185 * t) * Math.exp(-t * 65) * 0.32;
-    const wood = Math.sin(2 * Math.PI * 420 * t) * Math.exp(-t * 110) * 0.10;
-    samples[i] = (noise + body + wood) * attack * tail;
+    // Three tiny noise bursts give the airy palm sound, without a bass thump.
+    const burst = (start, strength) => t < start ? 0 : strength * Math.exp(-(t - start) * 155);
+    const envelope = burst(0, 0.6) + burst(0.008, 0.25) + burst(0.016, 0.12);
+    const air = softenedNoise * (envelope + 0.10 * Math.exp(-t * 65));
+    samples[i] = air * attack * tail;
   }
   return samples;
 }

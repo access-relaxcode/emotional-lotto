@@ -33,22 +33,56 @@ function initializeFortunes({ randomInteger, reduceMotion, onEnter }) {
       markup: '<button type="button" class="sticks-draw ritual-trigger" aria-label="산통 흔들어 제비 뽑기"><span class="fortune-stick stick-one"></span><span class="fortune-stick stick-two"></span><span class="fortune-stick stick-three"></span><span class="chosen-stick">吉</span><span class="canister"><span>福</span></span></button>' },
   };
 
-  function showChoices() {
+  const entrances = {
+    tarot: [{ opacity: 0, transform: 'perspective(900px) translateY(22px) rotateX(9deg) scale(.96)' }, { opacity: 1, transform: 'perspective(900px) translateY(0) rotateX(0deg) scale(1)' }],
+    cookie: [{ opacity: 0, transform: 'scale(.94)' }, { opacity: 1, transform: 'scale(1.015)', offset: .75 }, { opacity: 1, transform: 'scale(1)' }],
+    water: [{ opacity: 0, filter: 'blur(5px)', transform: 'translateY(8px)' }, { opacity: 1, filter: 'blur(0)', transform: 'translateY(0)' }],
+    sticks: [{ opacity: 0, transform: 'translateY(26px)' }, { opacity: 1, transform: 'translateY(0)' }],
+    fade: [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }],
+  };
+
+  async function animateScreen(element, frames, duration) {
+    if (reduceMotion || !element.animate) return;
+    const animation = element.animate(frames, { duration, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'both' });
+    try { await animation.finished; } catch { /* Navigation can cancel an animation. */ }
+    finally { animation.cancel(); }
+  }
+
+  async function switchScreen(outgoing, incoming, prepare, kind = 'fade') {
+    busy = true;
+    outgoing.inert = true;
+    incoming.inert = true;
+    try {
+      await animateScreen(outgoing, [{ opacity: 1 }, { opacity: 0, transform: 'translateY(-6px)' }], 140);
+      prepare();
+      outgoing.hidden = true;
+      incoming.hidden = false;
+      incoming.dataset.entrance = kind;
+      await animateScreen(incoming, entrances[kind], kind === 'water' ? 620 : 440);
+    } finally {
+      outgoing.inert = false;
+      incoming.inert = false;
+      busy = false;
+    }
+  }
+
+  async function showChoices() {
     if (busy) return;
-    onEnter('fortune');
-    lottery.hidden = true;
-    page.hidden = false;
-    choices.hidden = false;
-    stage.hidden = true;
-    document.body.classList.remove('fortune-active');
+    const fromLottery = !lottery.hidden;
+    await switchScreen(fromLottery ? lottery : stage, fromLottery ? page : choices, () => {
+      onEnter('fortune');
+      page.hidden = false;
+      choices.hidden = false;
+      stage.hidden = true;
+      document.body.classList.remove('fortune-active');
+    });
     $('fortuneHeading').focus({ preventScroll: true });
   }
 
-  function chooseRitual(type) {
+  async function chooseRitual(type) {
     if (busy) return;
     const ritual = rituals[type];
-    choices.hidden = true;
-    stage.hidden = false;
+    await switchScreen(choices, stage, () => {
     result.hidden = true;
     $('ritualHeading').textContent = ritual.title;
     $('ritualHint').textContent = ritual.hint;
@@ -57,6 +91,7 @@ function initializeFortunes({ randomInteger, reduceMotion, onEnter }) {
     art.innerHTML = ritual.markup;
     again.disabled = false;
     art.querySelectorAll('button').forEach(button => button.addEventListener('click', () => reveal(type, button)));
+    }, type);
     $('ritualHeading').focus({ preventScroll: true });
   }
 
@@ -101,11 +136,9 @@ function initializeFortunes({ randomInteger, reduceMotion, onEnter }) {
   choices.querySelectorAll('button').forEach(button => button.addEventListener('click', () => chooseRitual(button.dataset.fortune)));
   again.addEventListener('click', showChoices);
   $('backToFortune').addEventListener('click', showChoices);
-  $('enterLottery').addEventListener('click', () => {
+  $('enterLottery').addEventListener('click', async () => {
     if (busy || result.hidden) return;
-    onEnter('lottery');
-    page.hidden = true;
-    lottery.hidden = false;
+    await switchScreen(page, lottery, () => onEnter('lottery'));
     $('drawButton').focus({ preventScroll: true });
     lottery.scrollIntoView({ behavior: reduceMotion ? 'instant' : 'smooth', block: 'start' });
   });

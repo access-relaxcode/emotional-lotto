@@ -1,5 +1,24 @@
 function generateLottoDigits() {
-  return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10));
+  return Array.from({ length: 6 }, () => randomInteger(10));
+}
+
+function randomInteger(limit) {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    const values = new Uint32Array(1);
+    const ceiling = Math.floor(4294967296 / limit) * limit;
+    do { crypto.getRandomValues(values); } while (values[0] >= ceiling);
+    return values[0] % limit;
+  }
+  return Math.floor(Math.random() * limit);
+}
+
+function generateLotto645() {
+  const pool = Array.from({ length: 45 }, (_, index) => index + 1);
+  for (let i = 0; i < 6; i += 1) {
+    const j = i + randomInteger(45 - i);
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 6).sort((a, b) => a - b);
 }
 
 function formatLottoDigits(digits) {
@@ -17,6 +36,9 @@ if (typeof document !== "undefined") {
 
   const DEFAULTS = {
     mode: "dark",
+    lottery: "pension",
+    sound: true,
+    volume: 35,
     dark: {
       grad1: "#0b1220",
       grad2: "#1e3a8a",
@@ -46,12 +68,22 @@ if (typeof document !== "undefined") {
   const accent = document.getElementById("accent");
   const flapStyle = document.getElementById("flapStyle");
   const resetTheme = document.getElementById("resetTheme");
+  const lotteryMode = document.getElementById("lotteryMode");
+  const lotteryHint = document.getElementById("lotteryHint");
+  const soundToggle = document.getElementById("soundToggle");
+  const soundVolume = document.getElementById("soundVolume");
+  const volumeValue = document.getElementById("volumeValue");
+  const soundPreview = document.getElementById("soundPreview");
+  const soundHint = document.getElementById("soundHint");
+  const sound = new SoftFlapSound();
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const settings = loadSettings();
   const cells = Array.from({ length: DIGIT_COUNT }, (_, index) => createCell(index));
   cells.forEach((cell) => board.appendChild(cell.root));
   applyTheme();
+  applySound();
+  applyLottery();
 
   function loadSettings() {
     function validatedTheme(mode, saved) {
@@ -66,6 +98,9 @@ if (typeof document !== "undefined") {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       return {
         mode: saved?.mode === "light" ? "light" : DEFAULTS.mode,
+        lottery: saved?.lottery === "645" ? "645" : DEFAULTS.lottery,
+        sound: typeof saved?.sound === "boolean" ? saved.sound : DEFAULTS.sound,
+        volume: Number.isFinite(saved?.volume) ? Math.min(100, Math.max(0, saved.volume)) : DEFAULTS.volume,
         dark: validatedTheme("dark", saved?.dark),
         light: validatedTheme("light", saved?.light),
       };
@@ -146,6 +181,8 @@ if (typeof document !== "undefined") {
   function setFace(el, digit) {
     el.textContent = String(digit);
     el.dataset.digit = String(digit);
+    el.dataset.ballColor = settings.lottery === "645"
+      ? String(Math.ceil(digit / 10)) : "digit";
   }
 
   function wait(ms) {
@@ -164,6 +201,7 @@ if (typeof document !== "undefined") {
     setFace(cell.topNext, nextDigit);
     setFace(cell.bottomNext, nextDigit);
     cell.root.classList.add("flipping");
+    sound.play(FLIP_MS / 1000);
     await wait(FLIP_MS * 2);
     setFace(cell.topCurrent, nextDigit);
     setFace(cell.bottomCurrent, nextDigit);
@@ -178,14 +216,15 @@ if (typeof document !== "undefined") {
       return;
     }
 
-    let flips = 0;
-    while (flips < minFlips || cell.value !== target) {
-      await flipOnce(cell, (cell.value + 1) % 10);
-      flips += 1;
+    for (let flips = 0; flips < minFlips; flips += 1) {
+      const next = flips === minFlips - 1 ? target
+        : settings.lottery === "645" ? cell.value % 45 + 1 : (cell.value + 1) % 10;
+      await flipOnce(cell, next);
     }
   }
 
   function lockTheme(locked) {
+    lotteryMode.disabled = locked;
     toolbar.classList.toggle("locked", locked);
     toolbar.querySelectorAll("button, input, select").forEach((control) => {
       control.disabled = locked;
@@ -202,13 +241,14 @@ if (typeof document !== "undefined") {
   }
 
   async function draw() {
-    const digits = generateLottoDigits();
+    const digits = settings.lottery === "645" ? generateLotto645() : generateLottoDigits();
     document.body.classList.remove("complete");
     document.body.classList.add("glow", "drawing");
     lockTheme(true);
     status.textContent = "추첨 중입니다...";
     result.textContent = "";
     drawButton.disabled = true;
+    await startSound();
 
     if (!reduceMotion) {
       await wait(MORPH_MS);
@@ -229,7 +269,7 @@ if (typeof document !== "undefined") {
     }
 
     status.textContent = "추첨이 완료되었습니다.";
-    result.textContent = `추첨 번호: ${formatLottoDigits(digits)}`;
+    result.textContent = `${settings.lottery === "645" ? "로또 6/45" : "연금복권 6자리"}: ${formatLottoDigits(digits)}`;
     drawButton.textContent = "다시 추첨";
     drawButton.disabled = false;
     lockTheme(false);
@@ -270,6 +310,53 @@ if (typeof document !== "undefined") {
     saveSettings();
     applyTheme();
   });
+
+  function applyLottery() {
+    document.body.dataset.lottery = settings.lottery;
+    lotteryMode.value = settings.lottery;
+    lotteryHint.textContent = settings.lottery === "645"
+      ? "1부터 45까지, 겹치지 않는 여섯 숫자." : "0부터 9까지, 여섯 자리에 담는 설렘.";
+    cells.forEach((cell) => paintCell(cell, settings.lottery === "645" ? cell.index + 1 : 0));
+  }
+
+  function applySound() {
+    sound.setVolume(settings.sound ? settings.volume / 100 : 0);
+    soundToggle.setAttribute("aria-pressed", String(settings.sound));
+    soundToggle.textContent = settings.sound ? "소리 켜짐" : "소리 꺼짐";
+    soundVolume.value = settings.volume;
+    volumeValue.textContent = `${settings.volume}%`;
+    soundVolume.setAttribute("aria-valuetext", `${settings.volume}%`);
+    soundPreview.disabled = !settings.sound || settings.volume === 0;
+  }
+
+  async function startSound() {
+    if (!settings.sound || settings.volume === 0) return;
+    const available = await sound.start();
+    soundHint.textContent = available ? "작고 부드러운 키보드 소리" : "이 환경에서는 소리를 재생할 수 없어요.";
+  }
+
+  lotteryMode.addEventListener("change", () => {
+    settings.lottery = lotteryMode.value;
+    applyLottery();
+    setIdle();
+    saveSettings();
+  });
+  soundToggle.addEventListener("click", async () => {
+    settings.sound = !settings.sound;
+    applySound();
+    saveSettings();
+    await startSound();
+  });
+  soundVolume.addEventListener("input", () => {
+    settings.volume = Number(soundVolume.value);
+    applySound();
+    saveSettings();
+  });
+  soundPreview.addEventListener("click", async () => {
+    await startSound();
+    sound.play();
+  });
+  window.addEventListener("pagehide", () => sound.close());
 
   setIdle();
 } else {

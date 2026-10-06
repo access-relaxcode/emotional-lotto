@@ -50,6 +50,7 @@
         margin: 0;
         min-height: 100vh;
         display: grid;
+        grid-template-columns: minmax(0, 1fr);
         place-items: center;
         padding: 24px 16px;
         color: var(--text);
@@ -57,6 +58,7 @@
       }
 
       .page {
+        min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: flex-end;
@@ -116,7 +118,8 @@
       }
 
       .mode-row button,
-      .theme-fields button {
+      .theme-fields button,
+      .sound-controls button {
         border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
         border-radius: 999px;
         padding: 8px 10px;
@@ -131,6 +134,24 @@
         color: var(--accent-text);
         border-color: transparent;
       }
+
+      .draw-options { margin: 0 auto 20px; max-width: 400px; }
+      .draw-options label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 0.85rem; }
+      #lotteryMode { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--text) 20%, transparent); background: var(--panel); color: var(--text); font: inherit; }
+      #lotteryHint { margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); }
+      .sound-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; }
+      .sound-controls button { font-size: 0.8rem; }
+      .sound-controls label { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+      #soundVolume { width: 85px; accent-color: var(--accent); }
+      #volumeValue { min-width: 3em; }
+      #soundHint { margin: 10px 0 0; font-size: 0.75rem; color: var(--muted); }
+      button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+      body[data-lottery="645"] .face { font-size: 2.1rem; font-variant-numeric: tabular-nums; }
+      body.complete .face[data-ball-color="1"] { background: #f4c430; color: #1c1917; }
+      body.complete .face[data-ball-color="2"] { background: #1d4ed8; color: #eff6ff; }
+      body.complete .face[data-ball-color="3"] { background: #d90429; color: #fff1f2; }
+      body.complete .face[data-ball-color="4"] { background: #57534e; color: #fafaf9; }
+      body.complete .face[data-ball-color="5"] { background: #15803d; color: #f0fdf4; }
 
       .theme-fields {
         display: grid;
@@ -258,43 +279,43 @@
         -webkit-backface-visibility: hidden;
       }
 
-      body.complete .face[data-digit="0"] {
+      body.complete .face[data-ball-color="digit"][data-digit="0"] {
         background: #f4f1ea;
         color: #1c1917;
       }
-      body.complete .face[data-digit="1"] {
+      body.complete .face[data-ball-color="digit"][data-digit="1"] {
         background: #f4c430;
         color: #1c1917;
       }
-      body.complete .face[data-digit="2"] {
+      body.complete .face[data-ball-color="digit"][data-digit="2"] {
         background: #e85d04;
         color: #fff7ed;
       }
-      body.complete .face[data-digit="3"] {
+      body.complete .face[data-ball-color="digit"][data-digit="3"] {
         background: #d90429;
         color: #fff1f2;
       }
-      body.complete .face[data-digit="4"] {
+      body.complete .face[data-ball-color="digit"][data-digit="4"] {
         background: #6d28d9;
         color: #f5f3ff;
       }
-      body.complete .face[data-digit="5"] {
+      body.complete .face[data-ball-color="digit"][data-digit="5"] {
         background: #1d4ed8;
         color: #eff6ff;
       }
-      body.complete .face[data-digit="6"] {
+      body.complete .face[data-ball-color="digit"][data-digit="6"] {
         background: #0f766e;
         color: #f0fdfa;
       }
-      body.complete .face[data-digit="7"] {
+      body.complete .face[data-ball-color="digit"][data-digit="7"] {
         background: #15803d;
         color: #f0fdf4;
       }
-      body.complete .face[data-digit="8"] {
+      body.complete .face[data-ball-color="digit"][data-digit="8"] {
         background: #57534e;
         color: #fafaf9;
       }
-      body.complete .face[data-digit="9"] {
+      body.complete .face[data-ball-color="digit"][data-digit="9"] {
         background: #111827;
         color: #fbbf24;
       }
@@ -400,6 +421,7 @@
         .face {
           font-size: 1.85rem;
         }
+        body[data-lottery="645"] .face { font-size: 1.35rem; }
 
         .card { padding: 28px 12px; }
         #board { gap: 5px; }
@@ -450,13 +472,28 @@
     </aside>
     <main class="card">
       <h1>감성 로또 추첨기</h1>
-      <p class="lede">잠깐의 설렘, 여섯 자리에 담아.<br><small>연금복권 6자리 번호 추첨</small></p>
+      <p class="lede">잠깐의 설렘, 여섯 숫자에 담아.</p>
+      <div class="draw-options">
+        <label for="lotteryMode">오늘의 추첨</label>
+        <select id="lotteryMode">
+          <option value="pension">연금복권 · 6자리</option>
+          <option value="645">로또 · 6/45</option>
+        </select>
+        <p id="lotteryHint"></p>
+      </div>
       <p id="status" role="status">추첨 버튼을 눌러 주세요.</p>
       <div id="board" aria-hidden="true"></div>
       <div id="result" aria-live="polite" aria-atomic="true"></div>
       <button id="drawButton" type="button">추첨하기</button>
+      <div class="sound-controls" aria-label="추첨 소리 설정">
+        <button type="button" id="soundToggle" aria-pressed="true">소리 켜짐</button>
+        <label for="soundVolume">음량 <input id="soundVolume" aria-label="음량" type="range" min="0" max="100" value="35"><output id="volumeValue" for="soundVolume">35%</output></label>
+        <button type="button" id="soundPreview">소리 들어보기</button>
+      </div>
+      <p id="soundHint" role="status">작고 부드러운 키보드 소리</p>
     </main>
     </div>
+    <script src="flap-sound.js"></script>
     <script src="로또추첨.js"></script>
   </body>
 </html>
